@@ -57,6 +57,7 @@ public class MainActivity extends Activity implements OnClickListener {
 			R.id.Login, R.id.settle, R.id.Printlast,
 			R.id.Sale, R.id.VoidSale, R.id.Refund,
 //			R.id.PreAuth, R.id.AuthCancel, R.id.AuthComp,
+			R.id.CancelRequest
 		};
 
 		for (int id : btnIds) {
@@ -127,7 +128,13 @@ public class MainActivity extends Activity implements OnClickListener {
 		setTextById(R.id.callback, callback);
 	}
 	private void setTextById(int id, CharSequence text) {
-		((TextView)findViewById(id)).setText(text);
+		runOnUiThread(new Runnable() {
+			public void run() {
+				((TextView)findViewById(id)).setText(text);
+			}
+		});
+
+
 	}
 
 
@@ -154,7 +161,27 @@ public class MainActivity extends Activity implements OnClickListener {
 			}else if (null == (param = getParam(btnId))) {
 				response = "Call parameter failed!";
 			}
-			if (response == "") {
+
+			if(btnId == R.id.CancelRequest){
+				new Thread(new Runnable() {
+					@Override
+					public void run() {
+                        boolean bRet = false;
+                        try {
+                            bRet = mWizarPayment.cancelRequest("");
+                        } catch (RemoteException e) {
+                            throw new RuntimeException(e);
+                        }
+						String cancelResult = bRet? "Cancel success" : "Cancel failed";
+						Log.i(TAG,"cancelRequest ---->" + cancelResult);
+                        showResponse(cancelResult);
+					}
+				}).start();
+
+
+
+			}
+			else if (response == "") {
 				createAsyncTask().execute(btnId);
 				return;
 			}
@@ -188,18 +215,14 @@ public class MainActivity extends Activity implements OnClickListener {
 			String str = "Callback->Code:" + processCode + ",processMsg:" + processMsg;
 			Log.w(TAG, str);
 
-			runOnUiThread(new Runnable() {
-				public void run() {
-					showCallBack(str);
-				}
-			});
+			showCallBack(str);
 
 		}
 
 	};
 
 	@SuppressLint("StaticFieldLeak")
-    private AsyncTask<Integer, Void, String> createAsyncTask() {
+	private AsyncTask<Integer, Void, String> createAsyncTask() {
 		return new AsyncTask<Integer, Void, String>() {
 			protected void onPreExecute() {
 				showResponse("...");
@@ -317,26 +340,26 @@ public class MainActivity extends Activity implements OnClickListener {
 		inputDialog.setTitle(title).setView(editText);
 		inputDialog.setNegativeButton("Cancel",null);
 		inputDialog.setPositiveButton("Confirm",
-            (dialog, which) -> {
-                switch (btnID){
-                case R.id.VoidSale:
+			(dialog, which) -> {
+				switch (btnID){
+				case R.id.VoidSale:
 				case R.id.Refund:
 					oldInvoice = editText.getText().toString();
 					break;
-                }
+				}
 
-                if (mWizarPayment == null) {
-                    response = "Please click [ConnectPaymentRouter First]!";
-                } else if (null == (param = getParam(btnID))) {
-                    response = "Call parameter failed!";
-                }
-                if (response == "") {
-                    createAsyncTask().execute(btnID);
-                    return;
-                }
+				if (mWizarPayment == null) {
+					response = "Please click [ConnectPaymentRouter First]!";
+				} else if (null == (param = getParam(btnID))) {
+					response = "Call parameter failed!";
+				}
+				if (response == "") {
+					createAsyncTask().execute(btnID);
+					return;
+				}
 
-                showResponse();
-            }).show();
+				showResponse();
+			}).show();
 	}
 
 

@@ -72,12 +72,6 @@
             </intent-filter>
         </activity>
 
-        <receiver android:name="com.wizarpos.paymentrouterclient.BroadReceiver"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="com.wizarpos.napas.PAY_RESPONSE"/>
-            </intent-filter>
-        </receiver>
 
     </application>
 

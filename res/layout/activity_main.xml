@@ -99,29 +99,40 @@
             </LinearLayout>
 
 
-<!--            <LinearLayout-->
-<!--                android:id="@+id/line5"-->
-<!--                android:layout_width="match_parent"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:gravity="right"-->
-<!--                android:layout_below="@id/line2" >-->
-<!--                <Button-->
-<!--                    android:id="@+id/PreAuth"-->
-<!--                    style="@style/btn_menu_style"-->
-<!--                    android:text="PreAuth" />-->
+            <!--            <LinearLayout-->
+            <!--                android:id="@+id/line4"-->
+            <!--                android:layout_width="match_parent"-->
+            <!--                android:layout_height="wrap_content"-->
+            <!--                android:gravity="right"-->
+            <!--                android:layout_below="@id/line3" >-->
+            <!--                <Button-->
+            <!--                    android:id="@+id/PreAuth"-->
+            <!--                    style="@style/btn_menu_style"-->
+            <!--                    android:text="PreAuth" />-->
 
-<!--                <Button-->
-<!--                    android:id="@+id/AuthCancel"-->
-<!--                    style="@style/btn_menu_style"-->
-<!--                    android:text="AuthCancel" />-->
+            <!--                <Button-->
+            <!--                    android:id="@+id/AuthCancel"-->
+            <!--                    style="@style/btn_menu_style"-->
+            <!--                    android:text="AuthCancel" />-->
 
-<!--                <Button-->
-<!--                    android:id="@+id/AuthComp"-->
-<!--                    style="@style/btn_menu_style"-->
-<!--                    android:text="AuthComp" />-->
-<!--            </LinearLayout>-->
+            <!--                <Button-->
+            <!--                    android:id="@+id/AuthComp"-->
+            <!--                    style="@style/btn_menu_style"-->
+            <!--                    android:text="AuthComp" />-->
+            <!--            </LinearLayout>-->
 
+            <LinearLayout
+                android:id="@+id/line5"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="right"
+                android:layout_below="@id/line3" >
+                <Button
+                    android:id="@+id/CancelRequest"
+                    style="@style/btn_menu_style"
+                    android:text="Cancel Request" />
 
+            </LinearLayout>
 
         </LinearLayout>
     </ScrollView>
