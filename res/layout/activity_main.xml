@@ -41,9 +41,9 @@
                     android:text="unbind" />
 
                 <Button
-                    android:id="@+id/setParams"
+                    android:id="@+id/setListener"
                     style="@style/btn_menu_style"
-                    android:text="setParams" />
+                    android:text="setListener" />
 
             </LinearLayout>
 
@@ -55,9 +55,9 @@
                 android:layout_below="@id/line2" >
 
                 <Button
-                    android:id="@+id/login"
+                    android:id="@+id/Login"
                     style="@style/btn_menu_style"
-                    android:text="login" />
+                    android:text="Login" />
 
                 <Button
                     android:id="@+id/settle"
@@ -65,9 +65,9 @@
                     android:text="Settle" />
 
                 <Button
-                    android:id="@+id/printlast"
+                    android:id="@+id/Printlast"
                     style="@style/btn_menu_style"
-                    android:text="printlast" />
+                    android:text="Printlast" />
 
 
 
@@ -82,35 +82,44 @@
 
 
                 <Button
-                    android:id="@+id/payCash"
+                    android:id="@+id/Sale"
                     style="@style/btn_menu_style"
                     android:text="Sale" />
 
                 <Button
-                    android:id="@+id/voidSale"
+                    android:id="@+id/VoidSale"
                     style="@style/btn_menu_style"
-                    android:text="voidSale" />
+                    android:text="VoidSale" />
 
                 <Button
-                    android:id="@+id/refund"
+                    android:id="@+id/Refund"
                     style="@style/btn_menu_style"
-                    android:text="refund" />
+                    android:text="Refund" />
 
             </LinearLayout>
 
 
-            <LinearLayout
-                android:id="@+id/line5"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="right"
-                android:layout_below="@id/line2" >
-                <Button
-                    android:id="@+id/getLocation"
-                    style="@style/btn_menu_style"
-                    android:text="getLocation" />
+<!--            <LinearLayout-->
+<!--                android:id="@+id/line5"-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:gravity="right"-->
+<!--                android:layout_below="@id/line2" >-->
+<!--                <Button-->
+<!--                    android:id="@+id/PreAuth"-->
+<!--                    style="@style/btn_menu_style"-->
+<!--                    android:text="PreAuth" />-->
 
-            </LinearLayout>
+<!--                <Button-->
+<!--                    android:id="@+id/AuthCancel"-->
+<!--                    style="@style/btn_menu_style"-->
+<!--                    android:text="AuthCancel" />-->
+
+<!--                <Button-->
+<!--                    android:id="@+id/AuthComp"-->
+<!--                    style="@style/btn_menu_style"-->
+<!--                    android:text="AuthComp" />-->
+<!--            </LinearLayout>-->
 
 
 
@@ -150,10 +159,28 @@
         </LinearLayout>
 
         <LinearLayout
-            android:id="@+id/line14"
+            android:id="@+id/line13"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@id/line12"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="callback：" />
+
+            <TextView
+                android:id="@+id/callback"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/line14"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/line13"
             android:orientation="horizontal">
 
             <TextView

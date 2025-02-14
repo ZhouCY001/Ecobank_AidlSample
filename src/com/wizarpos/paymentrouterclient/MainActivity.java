@@ -1,10 +1,10 @@
 package com.wizarpos.paymentrouterclient;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.AsyncTask;
@@ -19,8 +19,8 @@ import android.view.View.OnClickListener;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import com.wizarpos.aidl.ICloudPay;
-import com.wizarpos.location.service.ILocationApiMgr;
+import com.wizarpos.payment.aidl.IPaymentPay;
+import com.wizarpos.payment.aidl.IPaymentPayCallback;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -28,22 +28,24 @@ import org.json.JSONObject;
 public class MainActivity extends Activity implements OnClickListener {
 
 	private static final String TAG = "PaymentRouterClient";
-	private String param, response, oriInvoice;
+	private String param, response,callback, oldInvoice;
 
-	private ICloudPay mWizarPayment;
-	private ILocationApiMgr iLocationApiMgr;
+	private IPaymentPay mWizarPayment;
 	final ServiceConnection mConnPayment = new PaymentConnection();
 
 	public static Context _Context;
 
-	public static String TEST_IP1 = "113.164.14.80";
-	public static int TEST_PORT1 = 11251;
-	public static String TEST_IP2 = "113.164.14.80";
-	public static int TEST_PORT2 = 11251;
+	public static String ExchangeKey = "ExchangeKey";
+	public static String Settle = "Settle";
+	public static String PrintLast = "PrintLast";
 
-	private String LOCATION_PACKAGE = "com.wizarpos.location.service";
-	private String LOCATION_ACTION = "com.wizarpos.location.service.MainService";
+	public static String Purchase = "Purchase";
+	public static String Reversal = "Reversal";
+	public static String Refund = "Refund";
 
+	public static String PreAuth = "PreAuth";
+	public static String AuthCompletion = "AuthCompletion";
+	public static String AuthCancel = "AuthCancel";
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -51,10 +53,10 @@ public class MainActivity extends Activity implements OnClickListener {
 		setContentView(R.layout.activity_main);
 		_Context = getApplicationContext();
 
-		int[] btnIds = { R.id.bind, R.id.unbind,R.id.setParams,
-			R.id.login, R.id.settle, R.id.printlast,
-			R.id.payCash, R.id.voidSale, R.id.refund,
-			R.id.getLocation
+		int[] btnIds = { R.id.bind, R.id.unbind,R.id.setListener,
+			R.id.Login, R.id.settle, R.id.Printlast,
+			R.id.Sale, R.id.VoidSale, R.id.Refund,
+//			R.id.PreAuth, R.id.AuthCancel, R.id.AuthComp,
 		};
 
 		for (int id : btnIds) {
@@ -79,7 +81,7 @@ public class MainActivity extends Activity implements OnClickListener {
 		@Override
 		public void onServiceConnected(ComponentName compName, IBinder binder) {
 			Log.d(TAG, "onServiceConnected compName: " + compName);
-			mWizarPayment = ICloudPay.Stub.asInterface(binder);
+			mWizarPayment = IPaymentPay.Stub.asInterface(binder);
 			showResponse("Connect Success!");
 		}
 
@@ -94,7 +96,7 @@ public class MainActivity extends Activity implements OnClickListener {
 	private void bindPaymentRouter() {
 		if (mWizarPayment == null) {
 			Log.i(TAG,"bindPaymentRouter");
-			Intent intent = new Intent("com.wizarpos.aidl.ICloudPay");
+			Intent intent = new Intent("com.wizarpos.payment.aidl.pay");
 			intent.setPackage("com.wizarpos.ecobank");//The package name of the payment app
 			bindService(intent, mConnPayment, BIND_AUTO_CREATE);
 		}
@@ -107,43 +109,6 @@ public class MainActivity extends Activity implements OnClickListener {
 	}
 
 
-	//Location Aidl
-	private void bindLocationServer() {
-		if(iLocationApiMgr==null) {
-			Intent intent = new Intent();
-			ComponentName componentName = new ComponentName(LOCATION_PACKAGE, LOCATION_ACTION);
-			intent.setComponent(componentName);
-			bindService(intent, mLocationServer, BIND_AUTO_CREATE);
-		}
-	}
-	private void unBindLocationServer(){
-		if(iLocationApiMgr!=null){
-			unbindService(mLocationServer);
-			iLocationApiMgr = null;
-		}
-	}
-
-	ServiceConnection mLocationServer = new ServiceConnection() {
-
-		@Override
-		public void onServiceConnected(ComponentName compName, IBinder service) {
-			Log.d(TAG, "onServiceConnected compName: " + compName);
-			iLocationApiMgr = ILocationApiMgr.Stub.asInterface(service);
-			try {
-				String sLocation = iLocationApiMgr.getLocation();
-				Log.d(TAG, "getLocation: " + sLocation);
-				showResponse(sLocation);
-			} catch (RemoteException e) {
-				throw new RuntimeException(e);
-			}
-		}
-
-		@Override
-		public void onServiceDisconnected(ComponentName compName) {
-			Log.d(TAG, "onServiceDisconnected compName: " + compName);
-			iLocationApiMgr = null;
-		}
-	};
 
 	public void showResponse(String response) {
 		this.response = response;
@@ -151,9 +116,15 @@ public class MainActivity extends Activity implements OnClickListener {
 
 	}
 
+	public void showCallBack(String str){
+		this.callback = str;
+		showResponse();
+	}
+
 	public void showResponse() {
 		setTextById(R.id.param, param);
 		setTextById(R.id.result, response);
+		setTextById(R.id.callback, callback);
 	}
 	private void setTextById(int id, CharSequence text) {
 		((TextView)findViewById(id)).setText(text);
@@ -168,15 +139,13 @@ public class MainActivity extends Activity implements OnClickListener {
 
 		param = "";
 		response = "";
-
+		callback = "";
 		switch(btnId) {
 		case R.id.bind:				bindPaymentRouter();    break;
 		case R.id.unbind:			unbindPaymentRouter();  break;
-		case R.id.getLocation:
-			unBindLocationServer();
-			bindLocationServer();
-			break;
-		case R.id.voidSale:			showInputDialog("Please input old Invoice Num",6,btnId);		break;
+		case R.id.VoidSale:
+		case R.id.Refund:
+			showInputDialog("Please input old Invoice Num",6,btnId);		break;
 		default:
 			if (mWizarPayment == null) {
 				response = "Please click [ConnectPaymentRouter First]!";
@@ -199,13 +168,12 @@ public class MainActivity extends Activity implements OnClickListener {
 		JSONObject jsonObject = new JSONObject();
 		try {
 			switch(btnId) {
-			case R.id.payCash:				setParam4PayCash(jsonObject);	break;
-			case R.id.voidSale:				setParam4VoidSale(jsonObject);	break;
-			case R.id.refund:				setParam4Refund(jsonObject);	break;
-			case R.id.printlast:			setParam4getPrintLast		(jsonObject);	break;
-			case R.id.settle:				setParam4settle				(jsonObject);	break;
-			case R.id.setParams:			setParam4SetParams(jsonObject);	break;
-			case R.id.login:				break;
+			case R.id.Login:			setParam4ExchangeKey(jsonObject);	break;
+			case R.id.settle:			setParam4Settle(jsonObject);		break;
+			case R.id.Printlast:		setParam4PrintLast(jsonObject);		break;
+			case R.id.Sale:				setParam4Sale(jsonObject);			break;
+			case R.id.VoidSale:			setParam4VoidSale(jsonObject);		break;
+			case R.id.Refund:			setParam4Refund(jsonObject);	break;
 			}
 		} catch (JSONException e) {
 			e.printStackTrace();
@@ -214,7 +182,24 @@ public class MainActivity extends Activity implements OnClickListener {
 		return jsonObject.toString();
 	}
 
-	private AsyncTask<Integer, Void, String> createAsyncTask() {
+	public IPaymentPayCallback paymentPayCallback = new IPaymentPayCallback.Stub() {
+		@Override
+		public void process(int processCode, String processMsg) throws RemoteException {
+			String str = "Callback->Code:" + processCode + ",processMsg:" + processMsg;
+			Log.w(TAG, str);
+
+			runOnUiThread(new Runnable() {
+				public void run() {
+					showCallBack(str);
+				}
+			});
+
+		}
+
+	};
+
+	@SuppressLint("StaticFieldLeak")
+    private AsyncTask<Integer, Void, String> createAsyncTask() {
 		return new AsyncTask<Integer, Void, String>() {
 			protected void onPreExecute() {
 				showResponse("...");
@@ -225,14 +210,17 @@ public class MainActivity extends Activity implements OnClickListener {
 				String result = "Skipped";
 				try {
 					switch(btnIds[0]) {
-					case R.id.payCash:
-					case R.id.voidSale:
-					case R.id.refund:
-						result = mWizarPayment.transact			(param);							break;
-					case R.id.printlast:		result = mWizarPayment.printLast		(param);	break;
-					case R.id.settle:			result = mWizarPayment.settle			(param);	break;
-					case R.id.setParams:		result = mWizarPayment.setParams		(param);	break;
-					case R.id.login:			result = mWizarPayment.login();						break;
+					case R.id.Login:
+					case R.id.settle:
+					case R.id.Printlast:
+					case R.id.Sale:
+					case R.id.VoidSale:
+					case R.id.Refund:
+						result = mWizarPayment.transact(param);
+						break;
+					case R.id.setListener:
+						mWizarPayment.addProcedureCallback(paymentPayCallback);
+						break;
 					}
 				} catch (RemoteException e) {
 					result = e.getMessage();
@@ -248,65 +236,77 @@ public class MainActivity extends Activity implements OnClickListener {
 		};
 	}
 
+	/**
+	 * {"CurrencyCode":"156","ReqTransDate":"20250108","EnableReceipt":true,"ReqTransTime":"095400",
+	 * "TransAmount":"2160","TransIndexCode":"861953384905834496","TransType":"Purchase"}
+	 * */
 
-	private void setParam4PayCash(JSONObject jsonObject) throws JSONException {
-		jsonObject.put("TransType", 1);
-		//'000000012300' means amount = 123.00
-		jsonObject.put("TransAmount", "000000012300");
-		jsonObject.put("currencyCode","935");
-		// 0: enable receipt , 1: disbale receipt
-//		jsonObject.put("NoPrintReceipt",1);
+	private void setParam4ExchangeKey(JSONObject jsonObject) throws JSONException {
+
+		jsonObject.put("TransType", ExchangeKey);
+		jsonObject.put("ShowUI", false);
+	}
+
+	private void setParam4Settle(JSONObject jsonObject) throws JSONException {
+
+		jsonObject.put("TransType", Settle);
+		jsonObject.put("ShowUI", false);
+	}
+
+	private void setParam4PrintLast(JSONObject jsonObject) throws JSONException {
+
+
+		jsonObject.put("TransType", PrintLast);
+		jsonObject.put("ShowUI", false);
+	}
+
+	private void setParam4Sale(JSONObject jsonObject) throws JSONException {
+		jsonObject.put("TransType", Purchase);
+		jsonObject.put("TransIndexCode", "00000001");
+		jsonObject.put("CurrencyCode","936");
+		jsonObject.put("TransAmount","1234");
+		jsonObject.put("EnableReceipt",false);
+
+		jsonObject.put("ReqTransDate","20250214");
+		jsonObject.put("ReqTransTime","095400");
+
+		jsonObject.put("ShowUI", false);
 	}
 
 	private void setParam4VoidSale(JSONObject jsonObject) throws JSONException {
-		jsonObject.put("passWord", "123456");
-		jsonObject.put("TransType", 101);
-		jsonObject.put("currencyCode","936");
-		if(oriInvoice !=null && oriInvoice.length()>0)
-			jsonObject.put("oriInvoice", oriInvoice);
+		jsonObject.put("TransType", Reversal);
+		jsonObject.put("TransIndexCode", "00000002");
+		jsonObject.put("CurrencyCode","936");
+		jsonObject.put("TransAmount","1234");
+		jsonObject.put("EnableReceipt",false);
+		jsonObject.put("OriInvoiceNum", oldInvoice);
 
+
+		jsonObject.put("ReqTransDate","20250214");
+		jsonObject.put("ReqTransTime","095400");
+
+		jsonObject.put("ShowUI", false);
 	}
 
 	private void setParam4Refund(JSONObject jsonObject) throws JSONException {
-		//'000000012300' means amount = 123.00
-		jsonObject.put("TransAmount", "000000012300");
-		jsonObject.put("passWord", "123456");
-		jsonObject.put("TransType", 100);
-		jsonObject.put("currencyCode","936");
+		jsonObject.put("TransType", Refund);
+		jsonObject.put("TransIndexCode", "00000003");
+		jsonObject.put("CurrencyCode","936");
+		jsonObject.put("TransAmount","1234");
+		jsonObject.put("EnableReceipt",false);
+		jsonObject.put("OriInvoiceNum", oldInvoice);
+
+
+		jsonObject.put("ReqTransDate","20250214");
+		jsonObject.put("ReqTransTime","095400");
+
+		jsonObject.put("ShowUI", false);
 	}
-
-	private void setParam4getPrintLast(JSONObject jsonObject) throws JSONException {
-		jsonObject.put("TransType", 147);
-	}
-
-	private void setParam4settle(JSONObject jsonObject) throws JSONException {
-		jsonObject.put("TransType", 21);
-	}
-
-
-	private void setParam4Login(JSONObject jsonObject) throws JSONException {
-		jsonObject.put("TransType", 55);
-	}
-
-	private void setParam4SetParams(JSONObject jsonObject) throws JSONException {
-		jsonObject.put("TransType", 2001);
-		jsonObject.put("PrimaryIP",TEST_IP1);
-		jsonObject.put("SecondaryIP",TEST_IP2);
-		jsonObject.put("PrimaryPort",TEST_PORT1);
-		jsonObject.put("SecondaryPort",TEST_PORT2);
-
-		jsonObject.put("TID","00000000"); //Max to 8
-		jsonObject.put("MID","123456789012345"); //Max to 15
-
-		jsonObject.put("passWord", "123456");
-
-	}
-
 
 
 
 	private void showInputDialog(String title,int maxInput,final int btnID) {
-		oriInvoice = "";
+		oldInvoice = "";
 
 		final EditText editText = new EditText(MainActivity.this);
 		editText.setInputType(InputType.TYPE_CLASS_NUMBER);
@@ -317,26 +317,26 @@ public class MainActivity extends Activity implements OnClickListener {
 		inputDialog.setTitle(title).setView(editText);
 		inputDialog.setNegativeButton("Cancel",null);
 		inputDialog.setPositiveButton("Confirm",
-			new DialogInterface.OnClickListener() {
-				@Override
-				public void onClick(DialogInterface dialog, int which) {
-					switch (btnID){
-					case R.id.voidSale:			oriInvoice = editText.getText().toString(); 		break;
-					}
+            (dialog, which) -> {
+                switch (btnID){
+                case R.id.VoidSale:
+				case R.id.Refund:
+					oldInvoice = editText.getText().toString();
+					break;
+                }
 
-					if (mWizarPayment == null) {
-						response = "Please click [ConnectPaymentRouter First]!";
-					} else if (null == (param = getParam(btnID))) {
-						response = "Call parameter failed!";
-					}
-					if (response == "") {
-						createAsyncTask().execute(btnID);
-						return;
-					}
+                if (mWizarPayment == null) {
+                    response = "Please click [ConnectPaymentRouter First]!";
+                } else if (null == (param = getParam(btnID))) {
+                    response = "Call parameter failed!";
+                }
+                if (response == "") {
+                    createAsyncTask().execute(btnID);
+                    return;
+                }
 
-					showResponse();
-				}
-			}).show();
+                showResponse();
+            }).show();
 	}
 
 
