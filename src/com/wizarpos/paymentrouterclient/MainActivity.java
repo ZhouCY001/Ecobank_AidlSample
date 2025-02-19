@@ -45,7 +45,7 @@ public class MainActivity extends Activity implements OnClickListener {
 
 	public static String PreAuth = "PreAuth";
 	public static String AuthCompletion = "AuthCompletion";
-	public static String AuthCancel = "AuthCancel";
+	public static String AuthVoid = "AuthVoid";
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -56,7 +56,7 @@ public class MainActivity extends Activity implements OnClickListener {
 		int[] btnIds = { R.id.bind, R.id.unbind,R.id.setListener,
 			R.id.Login, R.id.settle, R.id.Printlast,
 			R.id.Sale, R.id.VoidSale, R.id.Refund,
-//			R.id.PreAuth, R.id.AuthCancel, R.id.AuthComp,
+//			R.id.PreAuth, R.id.AuthVoid, R.id.AuthComp,
 			R.id.CancelRequest
 		};
 
@@ -288,7 +288,7 @@ public class MainActivity extends Activity implements OnClickListener {
 		jsonObject.put("TransIndexCode", "00000001");
 		jsonObject.put("CurrencyCode","936");
 		jsonObject.put("TransAmount","1234");
-		jsonObject.put("EnableReceipt",false);
+		jsonObject.put("EnableReceipt",true);
 
 		jsonObject.put("ReqTransDate","20250214");
 		jsonObject.put("ReqTransTime","095400");
@@ -301,7 +301,7 @@ public class MainActivity extends Activity implements OnClickListener {
 		jsonObject.put("TransIndexCode", "00000002");
 		jsonObject.put("CurrencyCode","936");
 		jsonObject.put("TransAmount","1234");
-		jsonObject.put("EnableReceipt",false);
+		jsonObject.put("EnableReceipt",true);
 		jsonObject.put("OriInvoiceNum", oldInvoice);
 
 
@@ -316,7 +316,7 @@ public class MainActivity extends Activity implements OnClickListener {
 		jsonObject.put("TransIndexCode", "00000003");
 		jsonObject.put("CurrencyCode","936");
 		jsonObject.put("TransAmount","1234");
-		jsonObject.put("EnableReceipt",false);
+		jsonObject.put("EnableReceipt",true);
 		jsonObject.put("OriInvoiceNum", oldInvoice);
 
 

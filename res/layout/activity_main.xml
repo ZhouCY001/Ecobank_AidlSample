@@ -111,9 +111,9 @@
             <!--                    android:text="PreAuth" />-->
 
             <!--                <Button-->
-            <!--                    android:id="@+id/AuthCancel"-->
+            <!--                    android:id="@+id/AuthVoid"-->
             <!--                    style="@style/btn_menu_style"-->
-            <!--                    android:text="AuthCancel" />-->
+            <!--                    android:text="AuthVoid" />-->
 
             <!--                <Button-->
             <!--                    android:id="@+id/AuthComp"-->
